@@ -1,0 +1,29 @@
+name: Sync fork with upstream
+
+# 每天 UTC 20:00（北京时间次日 04:00）自动同步，也可在 Actions 页面手动触发
+on:
+  schedule:
+    - cron: "0 20 * * *"
+  workflow_dispatch:
+
+# 允许 workflow 向仓库推送（合并上游需要写权限）
+permissions:
+  contents: write
+
+# 避免上一次同步未结束时重复启动
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fast-forward fork to upstream
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh repo sync "${{ github.repository }}" \
+            --source PaddlePaddle/PaddleOCR \
+            --branch main \
+            --force
